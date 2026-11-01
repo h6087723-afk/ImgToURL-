@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImgToURL Pro - Dev Suite by MUHAMMAD HASYIM SAPUTRA</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#0a0d14',
+                            card: '#121824',
+                            accent: '#00f0ff',
+                            purple: '#7000ff',
+                            pink: '#ff007f',
+                            border: 'rgba(0, 240, 255, 0.2)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.4)',
+                        'neon-pink': '0 0 15px rgba(255, 0, 127, 0.4)',
+                        'neon-purple': '0 0 15px rgba(112, 0, 255, 0.4)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0a0d14;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(0, 240, 255, 0.12) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(18, 24, 36, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+        }
+
+        .glass-panel-hover:hover {
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+        }
+
+        /* Cyberpunk glowing text */
+        .glow-text-cyan {
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+        }
+        .glow-text-purple {
+            text-shadow: 0 0 8px rgba(112, 0, 255, 0.6);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0d14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+
+        /* Equalizer Animation */
+        .eq-bar {
+            width: 3px;
+            background: #00f0ff;
+            border-radius: 2px;
+            animation: bounce 1s infinite ease-in-out alternate;
+        }
+        .eq-bar:nth-child(1) { height: 12px; animation-delay: 0.1s; }
+        .eq-bar:nth-child(2) { height: 18px; animation-delay: 0.3s; }
+        .eq-bar:nth-child(3) { height: 8px;  animation-delay: 0.2s; }
+        .eq-bar:nth-child(4) { height: 15px; animation-delay: 0.4s; }
+
+        .paused .eq-bar {
+            animation-play-state: paused;
+            height: 4px !important;
+        }
+
+        @keyframes bounce {
+            0% { height: 4px; }
+            100% { height: 20px; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-out flex items-center gap-3 px-5 py-3.5 rounded-xl glass-panel border-l-4 border-l-cyan-400 shadow-2xl">
+        <i id="toast-icon" class="fas fa-check-circle text-cyan-400 text-lg"></i>
+        <span id="toast-msg" class="text-sm font-medium text-gray-100">Action performed successfully</span>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-cyan-500/20 px-4 lg:px-8 py-3.5">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <!-- Logo & Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-neon-cyan text-black font-bold text-xl">
+                    <i class="fas fa-link"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wide text-white flex items-center gap-2">
+                        ImgToURL <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">PRO</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 font-mono">
+                        Developer By <span class="text-cyan-400 font-semibold tracking-wider glow-text-cyan">MUHAMMAD HASYIM SAPUTRA</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Audio Player Bar -->
+            <div class="flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-2xl border border-cyan-500/20 shadow-inner w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-3">
+                    <button id="btn-play-music" onclick="toggleMusic()" class="w-9 h-9 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-black flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-neon-cyan">
+                        <i id="play-icon" class="fas fa-play text-xs ml-0.5"></i>
+                    </button>
+                    <div>
+                        <div class="text-xs font-semibold text-white flex items-center gap-2">
+                            <span id="track-title" class="truncate max-w-[120px] sm:max-w-[160px]">Lofi Chill Vibes</span>
+                            <!-- Equalizer Visualizer -->
+                            <div id="eq-visualizer" class="flex items-end gap-0.5 h-5 paused">
+                                <div class="eq-bar"></div>
+                                <div class="eq-bar"></div>
+                                <div class="eq-bar"></div>
+                                <div class="eq-bar"></div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] text-gray-400 font-mono">Background Music</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pl-2 border-l border-slate-700">
+                    <select id="track-select" onchange="changeTrack()" class="bg-slate-800 text-xs text-gray-300 rounded-lg px-2 py-1 border border-slate-700 focus:outline-none focus:border-cyan-400">
+                        <option value="ambient">Chill Lofi Beat</option>
+                        <option value="synthwave">Cyber Synthwave</option>
+                        <option value="piano">Relaxing Piano</option>
+                    </select>
+                    <button onclick="toggleMute()" class="text-gray-400 hover:text-cyan-400 p-1 transition">
+                        <i id="mute-icon" class="fas fa-volume-up text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        
+        <!-- Hero Intro Section -->
+        <div class="text-center max-w-3xl mx-auto mb-8">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 tracking-tight mb-2">
+                Convert Images to Hosted & Base64 URLs Instantly
+            </h2>
+            <p class="text-gray-400 text-sm sm:text-base">
+                Fast, secure, and client-side image URL generator with extra developer utilities built in.
+            </p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex justify-center mb-8">
+            <div class="glass-panel p-1.5 rounded-2xl flex flex-wrap justify-center gap-1 sm:gap-2 shadow-xl border border-cyan-500/20">
+                <button onclick="switchTab('converter')" id="tab-converter" class="tab-btn active-tab px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-semibold shadow-neon-cyan">
+                    <i class="fas fa-link"></i> URL Converter
+                </button>
+                <button onclick="switchTab('resizer')" id="tab-resizer" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 text-gray-400 hover:text-white hover:bg-slate-800/60">
+                    <i class="fas fa-compress-arrows-alt"></i> Resizer & Format
+                </button>
+                <button onclick="switchTab('base64')" id="tab-base64" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 text-gray-400 hover:text-white hover:bg-slate-800/60">
+                    <i class="fas fa-code"></i> Base64 Tool
+                </button>
+                <button onclick="switchTab('palette')" id="tab-palette" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 text-gray-400 hover:text-white hover:bg-slate-800/60">
+                    <i class="fas fa-palette"></i> Palette Extractor
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 1: IMAGE TO URL CONVERTER -->
+        <div id="view-converter" class="tab-content block">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Upload Drop Area -->
+                <div class="lg:col-span-6 flex flex-col">
+                    <div id="drop-zone" onclick="document.getElementById('file-input').click()" class="glass-panel glass-panel-hover rounded-2xl p-8 border-2 border-dashed border-cyan-500/30 flex-1 flex flex-col items-center justify-center text-center cursor-pointer relative group transition-all min-h-[300px]">
+                        <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFileSelect(event)">
+                        
+                        <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl mb-4 group-hover:scale-110 group-hover:bg-cyan-500/20 transition shadow-neon-cyan">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-white mb-1">Drop your image here</h3>
+                        <p class="text-xs text-gray-400 mb-4">Supports PNG, JPG, WEBP, GIF, SVG (Max 10MB)</p>
+                        <button class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-semibold border border-cyan-500/30 transition shadow-lg">
+                            Browse File
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Preview & URLs Display -->
+                <div class="lg:col-span-6">
+                    <div class="glass-panel rounded-2xl p-6 h-full flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+                                <h3 class="font-semibold text-white flex items-center gap-2 text-sm">
+                                    <i class="fas fa-eye text-cyan-400"></i> Live Preview & Details
+                                </h3>
+                                <span id="img-status" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-gray-400 border border-slate-700">No Image Uploaded</span>
+                            </div>
+
+                            <!-- Preview Box -->
+                            <div class="relative w-full h-48 bg-slate-900/80 rounded-xl overflow-hidden border border-slate-800/80 flex items-center justify-center mb-4 group">
+                                <img id="preview-img" src="" alt="Preview" class="hidden max-h-full max-w-full object-contain">
+                                <div id="preview-placeholder" class="text-center text-gray-500 p-4">
+                                    <i class="fas fa-image text-3xl mb-2 opacity-50"></i>
+                                    <p class="text-xs">Upload an image to view preview and generated URLs</p>
+                                </div>
+                            </div>
+
+                            <!-- Metadata Stats -->
+                            <div id="img-meta" class="hidden grid grid-cols-3 gap-2 mb-4 text-center">
+                                <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                                    <div class="text-[10px] text-gray-400 uppercase">Size</div>
+                                    <div id="meta-size" class="text-xs font-semibold text-cyan-300 font-mono">0 KB</div>
+                                </div>
+                                <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                                    <div class="text-[10px] text-gray-400 uppercase">Dimensions</div>
+                                    <div id="meta-dim" class="text-xs font-semibold text-purple-300 font-mono">0 x 0</div>
+                                </div>
+                                <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                                    <div class="text-[10px] text-gray-400 uppercase">Type</div>
+                                    <div id="meta-type" class="text-xs font-semibold text-pink-300 font-mono">PNG</div>
+                                </div>
+                            </div>
+
+                            <!-- Output URL Inputs -->
+                            <div class="space-y-3">
+                                <!-- Data URL (Base64) -->
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-300 mb-1 flex justify-between">
+                                        <span>Data URL / Base64 Code</span>
+                                        <span class="text-[10px] text-cyan-400 font-mono">Direct Embed</span>
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="url-data" readonly placeholder="data:image/png;base64,..." class="bg-slate-900 text-xs font-mono text-gray-300 rounded-xl px-3 py-2.5 border border-slate-800 w-full focus:outline-none focus:border-cyan-500/50">
+                                        <button onclick="copyToClipboard('url-data', 'Data URL')" class="px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-semibold rounded-xl border border-cyan-500/40 transition shrink-0 flex items-center gap-1.5">
+                                            <i class="fas fa-copy"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Virtual Web Link -->
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-300 mb-1 flex justify-between">
+                                        <span>Blob / Virtual Hosted Link</span>
+                                        <span class="text-[10px] text-purple-400 font-mono">Session URL</span>
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="url-blob" readonly placeholder="blob:https://..." class="bg-slate-900 text-xs font-mono text-gray-300 rounded-xl px-3 py-2.5 border border-slate-800 w-full focus:outline-none focus:border-purple-500/50">
+                                        <button onclick="copyToClipboard('url-blob', 'Blob URL')" class="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl border border-purple-500/40 transition shrink-0 flex items-center gap-1.5">
+                                            <i class="fas fa-copy"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- HTML Img Tag Snippet -->
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-300 mb-1">
+                                        <span>HTML Snippet</span>
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="url-html" readonly placeholder='<img src="..." alt="Image" />' class="bg-slate-900 text-xs font-mono text-gray-300 rounded-xl px-3 py-2.5 border border-slate-800 w-full focus:outline-none focus:border-pink-500/50">
+                                        <button onclick="copyToClipboard('url-html', 'HTML Snippet')" class="px-4 py-2 bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 text-xs font-semibold rounded-xl border border-pink-500/40 transition shrink-0 flex items-center gap-1.5">
+                                            <i class="fas fa-copy"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: RESIZER & FORMAT CONVERTER -->
+        <div id="view-resizer" class="tab-content hidden">
+            <div class="glass-panel rounded-2xl p-6 max-w-3xl mx-auto">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-compress-arrows-alt text-cyan-400"></i> Image Resizer & Format Converter
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-2">Select Target Image</label>
+                        <div onclick="document.getElementById('resizer-file').click()" class="border-2 border-dashed border-slate-700 hover:border-cyan-500/50 rounded-xl p-4 text-center cursor-pointer bg-slate-900/50">
+                            <input type="file" id="resizer-file" class="hidden" accept="image/*" onchange="loadResizerImage(event)">
+                            <i class="fas fa-upload text-gray-400 text-xl mb-1"></i>
+                            <p id="resizer-file-name" class="text-xs text-gray-300">Click to choose image</p>
+                        </div>
+
+                        <div class="mt-4 space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Width (px)</label>
+                                    <input type="number" id="resize-width" placeholder="Auto" class="bg-slate-900 text-xs text-white rounded-xl px-3 py-2 border border-slate-800 w-full focus:border-cyan-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Height (px)</label>
+                                    <input type="number" id="resize-height" placeholder="Auto" class="bg-slate-900 text-xs text-white rounded-xl px-3 py-2 border border-slate-800 w-full focus:border-cyan-500">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Output Format</label>
+                                <select id="resize-format" class="bg-slate-900 text-xs text-white rounded-xl px-3 py-2 border border-slate-800 w-full focus:border-cyan-500">
+                                    <option value="image/png">PNG Format</option>
+                                    <option value="image/jpeg">JPEG Format</option>
+                                    <option value="image/webp">WEBP Format</option>
+                                </select>
+                            </div>
+
+                            <button onclick="processResizeAndConvert()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-semibold text-xs transition shadow-neon-cyan hover:scale-[1.01]">
+                                Process & Download Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Resizer Preview -->
+                    <div class="flex flex-col items-center justify-center bg-slate-900/80 rounded-xl p-4 border border-slate-800 min-h-[220px]">
+                        <img id="resizer-preview" src="" alt="Resizer Preview" class="hidden max-h-48 object-contain rounded">
+                        <div id="resizer-placeholder" class="text-center text-gray-500 text-xs">
+                            <i class="fas fa-sliders-h text-2xl mb-2 opacity-40"></i>
+                            <p>Upload image to resize or convert format</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: BASE64 ENCODER / DECODER -->
+        <div id="view-base64" class="tab-content hidden">
+            <div class="glass-panel rounded-2xl p-6 max-w-3xl mx-auto">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-code text-cyan-400"></i> Base64 Text / String Utilities
+                </h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Input Text or Base64 String</label>
+                        <textarea id="base64-input" rows="4" placeholder="Enter plain text or base64 string..." class="w-full bg-slate-900 text-xs font-mono text-gray-200 rounded-xl p-3 border border-slate-800 focus:outline-none focus:border-cyan-500"></textarea>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="encodeBase64Text()" class="flex-1 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-semibold border border-cyan-500/40 transition">
+                            Encode to Base64
+                        </button>
+                        <button onclick="decodeBase64Text()" class="flex-1 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-semibold border border-purple-500/40 transition">
+                            Decode Base64
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 flex justify-between">
+                            <span>Result</span>
+                            <button onclick="copyToClipboard('base64-output', 'Base64 Result')" class="text-cyan-400 hover:underline text-[11px]">Copy Output</button>
+                        </label>
+                        <textarea id="base64-output" readonly rows="4" placeholder="Output result will appear here..." class="w-full bg-slate-900 text-xs font-mono text-cyan-300 rounded-xl p-3 border border-slate-800 focus:outline-none"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: PALETTE EXTRACTOR -->
+        <div id="view-palette" class="tab-content hidden">
+            <div class="glass-panel rounded-2xl p-6 max-w-3xl mx-auto">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-palette text-cyan-400"></i> Image Color Palette & Hex Picker
+                </h3>
+
+                <p class="text-xs text-gray-400 mb-4">Extract prominent theme color codes from any image automatically.</p>
+
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1">
+                        <div onclick="document.getElementById('palette-file').click()" class="border-2 border-dashed border-slate-700 hover:border-cyan-500/50 rounded-xl p-6 text-center cursor-pointer bg-slate-900/50">
+                            <input type="file" id="palette-file" class="hidden" accept="image/*" onchange="extractPalette(event)">
+                            <i class="fas fa-paint-brush text-cyan-400 text-2xl mb-2"></i>
+                            <p class="text-xs text-gray-300 font-medium">Upload Image for Palette</p>
+                        </div>
+                        <img id="palette-img-preview" src="" class="hidden mt-4 max-h-40 rounded-xl mx-auto border border-slate-800">
+                    </div>
+
+                    <div class="flex-1">
+                        <h4 class="text-xs font-semibold text-gray-300 mb-3">Extracted Color Hex Codes:</h4>
+                        <div id="palette-colors" class="grid grid-cols-2 gap-2">
+                            <div class="text-xs text-gray-500 italic col-span-2">No image uploaded yet.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-cyan-500/20 py-6 px-4 mt-12">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div>
+                <p class="text-sm font-bold text-white tracking-wide">
+                    ImgToURL Developer Web App
+                </p>
+                <p class="text-xs text-gray-400">
+                    Designed & Crafted by <span class="text-cyan-400 font-medium glow-text-cyan">MUHAMMAD HASYIM SAPUTRA</span>
+                </p>
+            </div>
+            <div class="flex items-center gap-4 text-gray-400 text-sm">
+                <span class="text-xs text-slate-500">&copy; 2026 All Rights Reserved</span>
+                <a href="#" onclick="showToast('ImgToURL Pro v2.5 Active'); return false;" class="hover:text-cyan-400 transition"><i class="fas fa-shield-alt"></i></a>
+                <a href="#" onclick="showToast('Developed with Web APIs & HTML5'); return false;" class="hover:text-cyan-400 transition"><i class="fas fa-code"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Audio Player Hidden Element -->
+    <audio id="audio-player" loop preload="auto"></audio>
+
+    <!-- Logic Script -->
+    <script>
+        // --- Music Tracks (Royalty Free Web Audio Synthesized Data URIs or Lofi Links) ---
+        // Using Web Audio API synthetic synth ambient generator so music is 100% reliable offline & self-contained
+        let audioCtx = null;
+        let isPlaying = false;
+        let isMuted = false;
+        let audioOscillator = null;
+        let gainNode = null;
+        let musicInterval = null;
+
+        const tracks = {
+            ambient: { name: "Chill Lofi Beat", notes: [261.63, 293.66, 329.63, 392.00, 440.00] },
+            synthwave: { name: "Cyber Synthwave", notes: [110.00, 130.81, 146.83, 164.81, 196.00] },
+            piano: { name: "Relaxing Piano", notes: [329.63, 349.23, 392.00, 523.25, 587.33] }
+        };
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function toggleMusic() {
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (isPlaying) {
+                stopSynthMusic();
+                document.getElementById('play-icon').className = 'fas fa-play text-xs ml-0.5';
+                document.getElementById('eq-visualizer').classList.add('paused');
+                isPlaying = false;
+                showToast('Music Paused');
+            } else {
+                startSynthMusic();
+                document.getElementById('play-icon').className = 'fas fa-pause text-xs';
+                document.getElementById('eq-visualizer').classList.remove('paused');
+                isPlaying = true;
+                showToast('Playing: ' + tracks[document.getElementById('track-select').value].name);
+            }
+        }
+
+        function startSynthMusic() {
+            if (musicInterval) clearInterval(musicInterval);
+            const selectedTrackKey = document.getElementById('track-select').value;
+            const currentTrack = tracks[selectedTrackKey];
+            
+            let noteIdx = 0;
+            musicInterval = setInterval(() => {
+                if (!isPlaying || isMuted) return;
+
+                const osc = audioCtx.createOscillator();
+                const noteGain = audioCtx.createGain();
+
+                osc.type = selectedTrackKey === 'synthwave' ? 'sawtooth' : 'sine';
+                osc.frequency.setValueAtTime(currentTrack.notes[noteIdx % currentTrack.notes.length], audioCtx.currentTime);
+
+                noteGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+
+                osc.connect(noteGain);
+                noteGain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.2);
+
+                noteIdx++;
+            }, 600);
+        }
+
+        function stopSynthMusic() {
+            if (musicInterval) clearInterval(musicInterval);
+        }
+
+        function changeTrack() {
+            const selectedTrackKey = document.getElementById('track-select').value;
+            document.getElementById('track-title').innerText = tracks[selectedTrackKey].name;
+            if (isPlaying) {
+                startSynthMusic();
+                showToast('Switched track to ' + tracks[selectedTrackKey].name);
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const muteIcon = document.getElementById('mute-icon');
+            if (isMuted) {
+                muteIcon.className = 'fas fa-volume-mute text-sm text-red-400';
+                showToast('Audio Muted');
+            } else {
+                muteIcon.className = 'fas fa-volume-up text-sm text-cyan-400';
+                showToast('Audio Unmuted');
+            }
+        }
+
+        // --- Navigation Switcher ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 text-gray-400 hover:text-white hover:bg-slate-800/60';
+            });
+
+            document.getElementById('view-' + tabName).classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-' + tabName);
+            activeBtn.className = 'tab-btn active-tab px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-semibold shadow-neon-cyan';
+        }
+
+        // --- File Upload & Converter Logic ---
+        let loadedFile = null;
+
+        // Drag & Drop Listeners
+        const dropZone = document.getElementById('drop-zone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('border-cyan-400', 'bg-cyan-500/5'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-cyan-400', 'bg-cyan-500/5'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(e) {
+            if (e.target.files.length > 0) {
+                processFile(e.target.files[0]);
+            }
+        }
+
+        function processFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('Please select a valid image file!', 'error');
+                return;
+            }
+
+            loadedFile = file;
+
+            // 1. Data URL (Base64)
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                document.getElementById('url-data').value = dataUrl;
+                document.getElementById('url-html').value = `<img src="${dataUrl.substring(0, 40)}..." alt="Image" />`;
+
+                // Update Preview Image
+                const previewImg = document.getElementById('preview-img');
+                previewImg.src = dataUrl;
+                previewImg.classList.remove('hidden');
+                document.getElementById('preview-placeholder').classList.add('hidden');
+
+                // Read Image Dimensions
+                const tempImg = new Image();
+                tempImg.src = dataUrl;
+                tempImg.onload = function() {
+                    document.getElementById('meta-dim').innerText = `${this.width} x ${this.height}`;
+                };
+            };
+            reader.readAsDataURL(file);
+
+            // 2. Blob URL
+            const blobUrl = URL.createObjectURL(file);
+            document.getElementById('url-blob').value = blobUrl;
+
+            // 3. Metadata
+            document.getElementById('meta-size').innerText = formatFileSize(file.size);
+            document.getElementById('meta-type').innerText = file.type.split('/')[1].toUpperCase();
+            document.getElementById('img-meta').classList.remove('hidden');
+            
+            const statusTag = document.getElementById('img-status');
+            statusTag.innerText = 'Ready & Converted';
+            statusTag.className = 'text-xs px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';
+
+            showToast('Image converted to URL successfully!');
+        }
+
+        // --- Resizer & Converter Functions ---
+        let resizerImageObj = null;
+
+        function loadResizerImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('resizer-file-name').innerText = file.name;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                resizerImageObj = new Image();
+                resizerImageObj.src = evt.target.result;
+                resizerImageObj.onload = function() {
+                    document.getElementById('resize-width').value = this.width;
+                    document.getElementById('resize-height').value = this.height;
+                    
+                    const resPreview = document.getElementById('resizer-preview');
+                    resPreview.src = evt.target.result;
+                    resPreview.classList.remove('hidden');
+                    document.getElementById('resizer-placeholder').classList.add('hidden');
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function processResizeAndConvert() {
+            if (!resizerImageObj) {
+                showToast('Upload an image to resize first', 'error');
+                return;
+            }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            const newWidth = parseInt(document.getElementById('resize-width').value) || resizerImageObj.width;
+            const newHeight = parseInt(document.getElementById('resize-height').value) || resizerImageObj.height;
+            const format = document.getElementById('resize-format').value;
+
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+
+            ctx.drawImage(resizerImageObj, 0, 0, newWidth, newHeight);
+
+            canvas.toBlob((blob) => {
+                const downloadLink = document.createElement('a');
+                downloadLink.href = URL.createObjectURL(blob);
+                const ext = format.split('/')[1];
+                downloadLink.download = `resized-image.${ext}`;
+                downloadLink.click();
+                showToast('Image resized & downloaded!');
+            }, format, 0.92);
+        }
+
+        // --- Base64 Text Utilities ---
+        function encodeBase64Text() {
+            const input = document.getElementById('base64-input').value;
+            if (!input) {
+                showToast('Enter text to encode', 'error');
+                return;
+            }
+            try {
+                const encoded = btoa(input);
+                document.getElementById('base64-output').value = encoded;
+                showToast('Encoded to Base64');
+            } catch(e) {
+                showToast('Error encoding text', 'error');
+            }
+        }
+
+        function decodeBase64Text() {
+            const input = document.getElementById('base64-input').value;
+            if (!input) {
+                showToast('Enter Base64 to decode', 'error');
+                return;
+            }
+            try {
+                const decoded = atob(input);
+                document.getElementById('base64-output').value = decoded;
+                showToast('Decoded Base64 string');
+            } catch(e) {
+                showToast('Invalid Base64 string', 'error');
+            }
+        }
+
+        // --- Color Palette Extractor ---
+        function extractPalette(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const img = new Image();
+                img.src = evt.target.result;
+                
+                const previewImg = document.getElementById('palette-img-preview');
+                previewImg.src = evt.target.result;
+                previewImg.classList.remove('hidden');
+
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 50;
+                    canvas.height = 50;
+                    ctx.drawImage(img, 0, 0, 50, 50);
+
+                    const imgData = ctx.getImageData(0, 0, 50, 50).data;
+                    const colors = [];
+
+                    for (let i = 0; i < imgData.length; i += 40) {
+                        const r = imgData[i];
+                        const g = imgData[i+1];
+                        const b = imgData[i+2];
+                        const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+                        if (!colors.includes(hex)) colors.push(hex);
+                        if (colors.length >= 6) break;
+                    }
+
+                    const paletteContainer = document.getElementById('palette-colors');
+                    paletteContainer.innerHTML = '';
+                    
+                    colors.forEach(hex => {
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800 cursor-pointer hover:border-cyan-400 transition';
+                        div.onclick = () => copyText(hex, `Color ${hex}`);
+                        div.innerHTML = `
+                            <div class="w-6 h-6 rounded-lg shadow" style="background-color: ${hex}"></div>
+                            <span class="text-xs font-mono text-gray-200">${hex}</span>
+                        `;
+                        paletteContainer.appendChild(div);
+                    });
+
+                    showToast('Color palette extracted!');
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Helper Utilities ---
+        function copyToClipboard(elementId, label) {
+            const copyText = document.getElementById(elementId).value;
+            if (!copyText) {
+                showToast(`No ${label} available to copy`, 'error');
+                return;
+            }
+
+            // Executive fallback for iframe environment
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = copyText;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            showToast(`${label} copied to clipboard!`);
+        }
+
+        function copyText(text, label) {
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            showToast(`${label} copied!`);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = message;
+            if (type === 'error') {
+                toastIcon.className = 'fas fa-exclamation-circle text-red-400 text-lg';
+                toast.classList.replace('border-l-cyan-400', 'border-l-red-400');
+            } else {
+                toastIcon.className = 'fas fa-check-circle text-cyan-400 text-lg';
+                toast.classList.replace('border-l-red-400', 'border-l-cyan-400');
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
